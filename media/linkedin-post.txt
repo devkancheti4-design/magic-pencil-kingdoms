@@ -1,4 +1,4 @@
-A little side project I've been tinkering with: a browser game where whatever you draw comes alive. 🖍️
+A fun little side project I've been tinkering with: a browser game where whatever you draw comes alive. 🖍️
 
 It's inspired by the Oggy and the Cockroaches "Magic Pen" episode. You draw something, give it a name, and it walks off to do what its name says. "4 arm archer" fires four arrows. "Floating blades" floats and spins. "Giant strong green monster" does what you'd expect.
 
