@@ -1,17 +1,14 @@
-I built a game where whatever you draw comes alive. 🖍️
+A little side project I've been tinkering with: a browser game where whatever you draw comes alive. 🖍️
 
-Remember the Oggy and the Cockroaches episode with the magic pen? Draw a monster, name it "giant strong green monster", and it stomps off to war. Give an archer 4 arms and it fires 4 arrows at once. Write "floating blades" and it floats… and spins.
+It's inspired by the Oggy and the Cockroaches "Magic Pen" episode. You draw something, give it a name, and it walks off to do what its name says. "4 arm archer" fires four arrows. "Floating blades" floats and spins. "Giant strong green monster" does what you'd expect.
 
-Magic Pencil: Kingdoms of Paper
-• Draw anything. Name it. The name is its wish, the shape is its strength.
-• Unlimited ink. Six kingdoms to capture. A design studio where you can spend hours on a masterpiece.
-• Free, open source, runs in your browser – no download.
+It's free, open source and runs in the browser. There's a small studio for drawing your own creatures, and the part I'd love help with: creatures other people add to the repo show up in the game as challengers, so you end up facing everyone else's ideas.
 
-And the part I'm most excited about: your creations vs. everyone else's. Add your creature to the GitHub repo and it invades other players' kingdoms as an unknown challenger.
+If you enjoy games, drawing or JavaScript and feel like contributing a creature, a word or a fix, the door is open. Feedback of any kind is welcome too. Still rough around the edges, but it's fun.
 
 ▶ Play: https://devkancheti4-design.github.io/magic-pencil-kingdoms/
-💻 Code & contribute (MIT): https://github.com/devkancheti4-design/magic-pencil-kingdoms
+💻 Code (MIT): https://github.com/devkancheti4-design/magic-pencil-kingdoms
 
-The limit is your imagination – against everyone else's.
+The limit is your imagination.
 
-#gamedev #indiegame #opensource #javascript #creativity #buildinpublic
+#sideproject #opensource #gamedev #javascript #indiegame
