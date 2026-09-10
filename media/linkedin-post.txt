@@ -9,6 +9,6 @@ If you enjoy games, drawing or JavaScript and feel like contributing a creature,
 ▶ Play: https://devkancheti4-design.github.io/magic-pencil-kingdoms/
 💻 Code (MIT): https://github.com/devkancheti4-design/magic-pencil-kingdoms
 
-The limit is your imagination.
+Your imagination is the limit. Full potential loading…
 
 #sideproject #opensource #gamedev #javascript #indiegame

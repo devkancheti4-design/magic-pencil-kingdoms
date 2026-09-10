@@ -1,6 +1,6 @@
 # Magic Pencil: Kingdoms of Paper
 
-> **Whatever you draw comes alive.** Unlimited ink. Unlimited enemies. The limit is your imagination – against everyone else's.
+> **Whatever you draw comes alive.** Unlimited ink. Unlimited enemies. Your imagination is the limit – full potential loading…
 
 A free, open-source browser game inspired by the *Oggy and the Cockroaches* episode **"The Magic Pen"**.
 Draw anything, give it a name, and it comes to life and does what its name says.
