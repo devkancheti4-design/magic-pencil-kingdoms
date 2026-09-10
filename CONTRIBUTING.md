@@ -14,7 +14,7 @@ Every creature in Magic Pencil is a drawing plus a name. Yours can become one of
 4. Open `community/designs.json`, paste your design object(s) into the array and add an
    `"author": "your name"` field. Keep the `strokes`, `name` and `size` fields exactly as exported
    (the `thumb` field can be removed to keep the file small).
-5. Open a pull request titled `design: <name>`.
+5. Open a pull request titled `design: <name>`. A check validates it within a minute and merges it automatically when it passes; if something is off, it leaves a comment explaining exactly what to fix.
 
 Rules: family friendly, your own drawing, one design per PR is easiest to review.
 
