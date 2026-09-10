@@ -1,0 +1,25 @@
+name: Smoke test
+# Loads the game in headless Chromium, draws a creature, runs a few seconds and fails on any runtime error.
+# Runs with read-only permissions on the PR's own code (safe for forks); the Contributions workflow never runs PR code.
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Syntax check
+        run: for f in *.js tools/*.js; do node --check "$f"; done
+      - name: Validate community designs
+        run: node tools/validate-designs.js community/designs.json
+      - name: Install puppeteer
+        run: npm install --no-save puppeteer@23
+      - name: Play a few seconds
+        run: node tools/smoke-test.js
