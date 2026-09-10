@@ -1,0 +1,90 @@
+name: Contributions
+# Handles community contributions automatically:
+#  - design PRs (only community/designs.json changed) are validated and merged when they pass
+#  - code PRs get a syntax check and a friendly comment for the maintainers / review bot
+#  - pushes to main re-validate the designs file
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+    paths: [community/designs.json, tools/validate-designs.js]
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+jobs:
+  validate-main:
+    if: github.event_name != 'pull_request_target'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node tools/validate-designs.js community/designs.json
+  triage-pr:
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR: ${{ github.event.pull_request.number }}
+      HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      # Only trusted code from main is checked out; PR files are downloaded, never executed.
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Classify and validate
+        id: check
+        run: |
+          files=$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json files -q '.files[].path')
+          echo "changed files:"; echo "$files"
+          : > /tmp/report.txt
+          if [ "$files" = "community/designs.json" ]; then
+            echo "kind=design" >> "$GITHUB_OUTPUT"
+            gh api "repos/$HEAD_REPO/contents/community/designs.json?ref=$HEAD_SHA" -H "Accept: application/vnd.github.raw" > /tmp/designs.json
+            if node tools/validate-designs.js /tmp/designs.json --base community/designs.json > /tmp/report.txt; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "ok=false" >> "$GITHUB_OUTPUT"; fi
+          else
+            echo "kind=code" >> "$GITHUB_OUTPUT"
+            ok=true
+            for f in $files; do
+              case "$f" in
+                *.js)
+                  gh api "repos/$HEAD_REPO/contents/$f?ref=$HEAD_SHA" -H "Accept: application/vnd.github.raw" > /tmp/check.js 2>/dev/null || continue
+                  if ! node --check /tmp/check.js 2>/tmp/err.txt; then ok=false; { echo "- \`$f\` does not parse:"; echo '```'; head -20 /tmp/err.txt; echo '```'; } >> /tmp/report.txt; fi ;;
+                community/designs.json)
+                  gh api "repos/$HEAD_REPO/contents/community/designs.json?ref=$HEAD_SHA" -H "Accept: application/vnd.github.raw" > /tmp/designs.json
+                  node tools/validate-designs.js /tmp/designs.json --base community/designs.json >> /tmp/report.txt || ok=false ;;
+              esac
+            done
+            echo "ok=$ok" >> "$GITHUB_OUTPUT"
+          fi
+          echo "report:"; cat /tmp/report.txt
+      - name: Merge a valid design
+        if: steps.check.outputs.kind == 'design' && steps.check.outputs.ok == 'true'
+        run: |
+          gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body "✅ Your design passed validation – thank you for adding to the paper! Merging it now. Within a few minutes it will be live at https://devkancheti4-design.github.io/magic-pencil-kingdoms/ and will start invading other players' kingdoms as a challenger. 🖍️"
+          if ! gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --squash; then
+            gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body "I could not merge automatically – most likely someone else added a design at the same time and the file now conflicts. Please update your branch with the latest \`main\` (keep both designs in the array) and push again; the check will run once more."
+            gh pr edit "$PR" --repo "$GITHUB_REPOSITORY" --add-label "needs-changes" || true
+          fi
+      - name: Explain what to fix in a design
+        if: steps.check.outputs.kind == 'design' && steps.check.outputs.ok == 'false'
+        run: |
+          { echo "Thanks for the design! A few things need fixing before it can come alive:"; echo; cat /tmp/report.txt; echo; echo "See CONTRIBUTING.md for the format. Push a fix to this branch and the check runs again automatically."; } > /tmp/body.md
+          gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body-file /tmp/body.md
+          gh pr edit "$PR" --repo "$GITHUB_REPOSITORY" --add-label "needs-changes" || true
+      - name: Welcome a code contribution
+        if: steps.check.outputs.kind == 'code'
+        run: |
+          if [ "${{ steps.check.outputs.ok }}" = "true" ]; then
+            echo "Thanks for the pull request! The JavaScript parses cleanly. A maintainer (or the review bot, which runs every few hours) will play-test it and get back to you soon." > /tmp/body.md
+          else
+            { echo "Thanks for the pull request! Some files don't pass the basic checks yet:"; echo; cat /tmp/report.txt; } > /tmp/body.md
+          fi
+          gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body-file /tmp/body.md
+          gh pr edit "$PR" --repo "$GITHUB_REPOSITORY" --add-label "code" || true
