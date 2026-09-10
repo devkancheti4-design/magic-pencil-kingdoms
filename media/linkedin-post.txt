@@ -1,0 +1,17 @@
+I built a game where whatever you draw comes alive. 🖍️
+
+Remember the Oggy and the Cockroaches episode with the magic pen? Draw a monster, name it "giant strong green monster", and it stomps off to war. Give an archer 4 arms and it fires 4 arrows at once. Write "floating blades" and it floats… and spins.
+
+Magic Pencil: Kingdoms of Paper
+• Draw anything. Name it. The name is its wish, the shape is its strength.
+• Unlimited ink. Six kingdoms to capture. A design studio where you can spend hours on a masterpiece.
+• Free, open source, runs in your browser – no download.
+
+And the part I'm most excited about: your creations vs. everyone else's. Add your creature to the GitHub repo and it invades other players' kingdoms as an unknown challenger.
+
+▶ Play: https://devkancheti4-design.github.io/magic-pencil-kingdoms/
+💻 Code & contribute (MIT): https://github.com/devkancheti4-design/magic-pencil-kingdoms
+
+The limit is your imagination – against everyone else's.
+
+#gamedev #indiegame #opensource #javascript #creativity #buildinpublic

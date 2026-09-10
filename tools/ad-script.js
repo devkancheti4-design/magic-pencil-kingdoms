@@ -48,10 +48,13 @@
   const at = (design, x, y) => design.map(s => ({ kind: s.kind, pts: s.pts.map(p => ({ x: p.x + x, y: p.y + y })), color: s.color, width: s.width }));
 
   /* ---------- frame capture & overlays ---------- */
+  const buffer = [];
+  async function flush() { if (!buffer.length) return; const body = JSON.stringify(buffer.splice(0)); await fetch(`${SERVER}/batch`, { method: 'POST', body }); }
   async function capture() {
-    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.86));
-    await fetch(`${SERVER}/?name=f${String(frameNo).padStart(5, '0')}.jpg`, { method: 'POST', body: blob });
+    // synchronous capture (toDataURL) so a hidden/throttled tab cannot slow the recording; uploads go in batches
+    buffer.push({ name: `f${String(frameNo).padStart(5, '0')}.jpg`, b64: canvas.toDataURL('image/jpeg', 0.86).split(',')[1] });
     frameNo++; window.__adProgress = frameNo;
+    if (buffer.length >= 60) await flush();
   }
   const ease = k => k < 0 ? 0 : k > 1 ? 1 : k * k * (3 - 2 * k);
   function text(str, x, y, size, opts) {
@@ -126,6 +129,7 @@
     await run(6.5, k => { caption('Face the unknown: other players’ creations invade your kingdom', ease(k * 4), 600); for (const u of chal) if (!u.dead) text('by ' + u.author, u.x - camX(), u.y - u.h / 2 - 26, 16, { color: '#ffd166' }); });
     // S6 end card
     await run(7.0, k => { dim(ease(k * 4) * 0.8); text('Unlimited ink.  Unlimited enemies.', W / 2, 220, 44, { alpha: ease(k * 4), color: '#7dffb0' }); text('The limit is your imagination.', W / 2, 300, 52, { alpha: ease(k * 4 - 0.6) }); text('Against everyone else’s.', W / 2, 356, 34, { alpha: ease(k * 4 - 1.0), color: '#f6e39b' }); text('Free  ·  open source  ·  play in your browser', W / 2, 450, 26, { alpha: ease(k * 4 - 1.4), weight: 'normal' }); text('devkancheti4-design.github.io/magic-pencil-kingdoms', W / 2, 500, 30, { alpha: ease(k * 4 - 1.6), color: '#a9d9ee' }); text('Add your creature on GitHub and it invades other players', W / 2, 560, 24, { alpha: ease(k * 4 - 1.8), weight: 'normal', color: '#e8a7bd' }); });
+    await flush();
     await fetch(`${SERVER}/?name=designs.json`, { method: 'POST', body: JSON.stringify(designs) });
     window.__adDone = true; return frameNo;
   }
