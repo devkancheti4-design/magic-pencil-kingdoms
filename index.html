@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Magic Pencil: Kingdoms of Paper</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header id="hud">
+    <div class="stat"><span class="lbl">Kingdoms</span><span id="kingdomText">1 / 6</span></div>
+    <div class="stat"><span class="lbl">Score</span><span id="scoreText">0</span></div>
+    <div class="stat"><span class="lbl">Your army</span><span id="armyText">0</span></div>
+    <div class="stat"><span class="lbl">Enemies</span><span id="enemyText">0</span></div>
+    <div class="stat"><span class="lbl">Here</span><span id="hereText">Greenhaven</span></div>
+    <div class="spacer"></div>
+    <div class="speed">
+      <button id="btnSpeed0" title="Pause (P)">⏸</button>
+      <button id="btnSpeed1" class="on" title="Play">▶</button>
+      <button id="btnSpeed2" title="Fast forward">⏩</button>
+    </div>
+    <button id="btnHome" title="Jump to your home (1)">Home</button>
+    <button id="btnFront" title="Jump to the front line (2)">Front</button>
+    <button id="btnStudio" class="accent" title="Open the Design Studio (S)">✎ Studio</button>
+    <button id="btnBook" title="Spellbook (H)">Spellbook</button>
+    <button id="btnRestart">Restart</button>
+  </header>
+
+  <div id="main">
+    <div id="stage">
+      <canvas id="game"></canvas>
+      <div id="namebox" class="hidden">
+        <input id="nameInput" type="text" autocomplete="off" spellcheck="false" placeholder="Name it / make a wish… e.g. fast horse, 3 archers guard, dragon">
+        <div id="namePreview"></div>
+        <div class="row">
+          <button id="nameGo">Bring to life ⏎</button>
+          <button id="nameClear" class="ghost">Erase (Esc)</button>
+        </div>
+      </div>
+      <div id="toast" class="hidden"></div>
+      <div id="placeHint" class="hidden">Click to place · [ ] resize · F flip · Esc done</div>
+    </div>
+
+    <aside id="side">
+      <h2>Inspector</h2>
+      <div id="inspector" class="muted">Click a living drawing to see how it works.</div>
+      <h2>Kingdom</h2>
+      <div id="kingdomInfo" class="muted"></div>
+      <h2>How it works</h2>
+      <ul class="tips">
+        <li><b>Draw</b> on the paper with the left mouse button or a finger. <b>Pan</b> with the right button, arrow keys, the mouse wheel, or the minimap.</li>
+        <li><b>Name it</b> – the name is the wish. <i>archer</i> shoots, <i>horse</i> runs, <i>wall</i> blocks, <i>tower</i> guards, <i>bomb</i> explodes, <i>cake</i> lures roaches, <i>doctor</i> heals.</li>
+        <li><b>Only inside your kingdoms</b> (green ground) can drawings come alive. Your army marches to the next enemy castle. Smash it to capture the kingdom.</li>
+        <li><b>Shape matters</b> – bigger = tougher, more legs = faster, spikes = damage, closed loops = armour, more detail = masterpiece bonus.</li>
+        <li><b>Studio</b> – take all the time you want: pen for outlines, bucket or crayon to colour in (like the magic pen in the cartoon), mirror, undo. Save designs to your library and stamp them into the world as many times as you like.</li>
+      </ul>
+    </aside>
+  </div>
+
+  <div id="libraryBar">
+    <button id="btnNewDesign" class="accent">+ New design</button>
+    <div id="library"></div>
+    <div class="libActions">
+      <button id="btnExport" class="ghost" title="Download your library as JSON">Export</button>
+      <label class="ghost btn" title="Load a library JSON file">Import<input id="importFile" type="file" accept="application/json" hidden></label>
+    </div>
+  </div>
+</div>
+
+<!-- Design Studio -->
+<div id="studio" class="hidden">
+  <div class="studioTop">
+    <span class="studioTitle">✎ Design Studio <small>– the world is paused. Take your time.</small></span>
+    <input id="studioName" type="text" autocomplete="off" spellcheck="false" placeholder="Name / wish… e.g. golden fire dragon guard">
+    <label class="sizeLbl">Size when alive <input id="studioSize" type="range" min="50" max="420" value="160"> <span id="studioSizeVal">160px</span></label>
+    <button id="studioSave">Save to library</button>
+    <button id="studioPlace" class="accent">Save &amp; place</button>
+    <button id="studioClose" class="ghost">Close (Esc)</button>
+  </div>
+  <div class="studioBody">
+    <div class="studioTools">
+      <div class="toolGroup" id="colorGroup"></div>
+      <div class="toolGroup" id="widthGroup"></div>
+      <div class="toolGroup">
+        <button id="toolPen" class="tool on" title="Pen – outlines (B)">✏️</button>
+        <button id="toolCrayon" class="tool" title="Crayon – scribbly colouring (C)">🖍️</button>
+        <button id="toolBucket" class="tool" title="Bucket – colour in a closed outline (G)">🪣</button>
+        <button id="toolEraser" class="tool" title="Eraser – removes whole strokes (E)">🧽</button>
+        <button id="toolMirror" class="tool" title="Mirror drawing (M)">🪞</button>
+        <button id="toolGrid" class="tool" title="Grid">▦</button>
+      </div>
+      <div class="toolGroup">
+        <button id="toolUndo" class="tool" title="Undo (Ctrl+Z)">↶</button>
+        <button id="toolRedo" class="tool" title="Redo (Ctrl+Y)">↷</button>
+        <button id="toolClear" class="tool" title="Clear all">🗑</button>
+      </div>
+    </div>
+    <div class="studioCanvasWrap"><canvas id="studioCanvas"></canvas></div>
+    <div class="studioStats" id="studioStats"></div>
+  </div>
+</div>
+
+<div id="overlay" class="modal">
+  <div class="card">
+    <h1>Magic Pencil: Kingdoms of Paper</h1>
+    <p>You found a magic pencil. Whatever you draw and name comes alive – just like the cartoon.
+       The cockroaches found one too and scribbled five kingdoms across the paper. Take them back.</p>
+    <p><b>Draw</b> inside your kingdom → <b>name it</b> (that's its wish) → it comes alive and marches on the next castle.
+       Its <b>shape</b> decides its strength; its <b>name</b> decides what it does. Ink is unlimited – your imagination is the only limit.</p>
+    <p class="muted">Try: <i>archer</i>, <i>knight</i>, <i>fast horse</i>, <i>3 arrowmen guard</i>, <i>fire dragon</i>, <i>wall</i>, <i>tower</i>, <i>bomb</i>, <i>cake</i>, <i>doctor</i>, <i>army</i>. Open the Studio to design a masterpiece.</p>
+    <div id="finalScore" class="hidden"></div>
+    <div class="row">
+      <button id="btnStart">Pick up the pencil</button>
+      <button id="btnContinue" class="ghost hidden">Keep playing</button>
+    </div>
+  </div>
+</div>
+
+<div id="spellbook" class="modal hidden">
+  <div class="card wide">
+    <h1>Spellbook – how names and shapes work</h1>
+    <div class="cols">
+      <div>
+        <h3>Creatures (what the name makes it do)</h3>
+        <table>
+          <tr><th>Words</th><th>What it does</th></tr>
+          <tr><td>soldier, knight, warrior, man, army, ninja, wolf, bear, giant, robot, zombie…</td><td>Walks toward the enemy castle and hits things up close.</td></tr>
+          <tr><td>archer, arrowman, bowman, hunter, gunner, sniper, crossbow…</td><td>Shoots arrows from far away. Can hit flying things.</td></tr>
+          <tr><td>horse, pony, camel, elephant, bike, car, chariot, zebra…</td><td>Fast runner. Draw a fighter or archer on top and it becomes a rider.</td></tr>
+          <tr><td>bird, eagle, bee, bat, plane, jet, drone, butterfly…</td><td>Flies over walls and dives on enemies. Ground fighters can't reach it.</td></tr>
+          <tr><td>dragon, phoenix, wyvern</td><td>Flies and breathes fire on groups.</td></tr>
+          <tr><td>wall, shield, fence, rock, castle, tree, house, box, bush…</td><td>Stays put and blocks the road. Very tough. Build with these.</td></tr>
+          <tr><td>tower, watchtower, lighthouse</td><td>A building that shoots arrows at anything that comes near.</td></tr>
+          <tr><td>bomb, tnt, dynamite, grenade, meteor, missile…</td><td>Runs at the nearest enemy and explodes.</td></tr>
+          <tr><td>doctor, nurse, medic, healer, angel, fairy, heart…</td><td>Heals nearby friends (and castles).</td></tr>
+          <tr><td>cake, cheese, pizza, apple, burger, candy, garbage…</td><td>Bait! Roaches drop everything and go eat it.</td></tr>
+          <tr><td>hole, pit, spikes, trap, mud, glue, net, web…</td><td>Hidden trap. Roaches that step on it get stuck and hurt.</td></tr>
+          <tr><td>cannon, tank, catapult, turret, artillery…</td><td>Slow, long range, big splash damage. Great against castles.</td></tr>
+          <tr><td>wizard, mage, witch, sorcerer, genie…</td><td>Long range magic bolts that hit hard.</td></tr>
+          <tr><td>anything else</td><td>A generic creature – its shape decides everything.</td></tr>
+        </table>
+      </div>
+      <div>
+        <h3>Modifier words</h3>
+        <table>
+          <tr><td>fast, quick, speedy, swift, turbo, zoom</td><td>Speed ×1.6</td></tr>
+          <tr><td>slow, lazy, heavy, fat, sleepy</td><td>Speed ×0.6</td></tr>
+          <tr><td>giant, huge, big, mega, large</td><td>HP & damage ×1.5, a bit slower</td></tr>
+          <tr><td>tiny, small, mini, little, baby</td><td>Weaker, quicker</td></tr>
+          <tr><td>strong, mighty, super, tough, iron, steel, golden, diamond, armored</td><td>HP ×1.4, damage ×1.3</td></tr>
+          <tr><td>fire, flame, lava, burning</td><td>Hits set enemies on fire (burn over time)</td></tr>
+          <tr><td>ice, frost, frozen, snow</td><td>Hits freeze enemies (they slow down)</td></tr>
+          <tr><td>poison, toxic, venom</td><td>Hits poison enemies</td></tr>
+          <tr><td>lightning, thunder, electric, shock</td><td>Extra damage and a short stun</td></tr>
+          <tr><td>flying, winged, wings</td><td>Anything can fly – a flying horse is a pegasus</td></tr>
+          <tr><td>2, 3… ten, army, squad, pack, swarm, legion</td><td>Makes several copies</td></tr>
+          <tr><td>rider, riding, on horse, cavalry</td><td>Mounts the nearest free horse</td></tr>
+          <tr><td>4 arms, 3 bows, 2 heads…</td><td>Fires that many shots at once (or hits harder up close)</td></tr>
+          <tr><td>spinning, rotating, blades, saw, propeller</td><td>Spins – and hits everything it touches</td></tr>
+          <tr><td>floating, hovering, ghost, balloon</td><td>Floats above the ground, needs no legs</td></tr>
+          <tr><td>rolling, wheel, ball, boulder</td><td>Rolls along, a bit faster</td></tr>
+          <tr><td>bouncing, hopping, frog, kangaroo</td><td>Hops as it moves</td></tr>
+          <tr><td>shaking, wobbly · snake, worm, wiggling</td><td>Shakes · wiggles</td></tr>
+        </table>
+        <h3>Wish / orders</h3>
+        <table>
+          <tr><td>attack, charge, go, fight, kill</td><td>March at the nearest enemy castle (default)</td></tr>
+          <tr><td>guard, defend, protect, stay, hold, wait, stand</td><td>Hold position, fight what comes close</td></tr>
+          <tr><td>follow, come</td><td>Follows your pencil (mouse)</td></tr>
+          <tr><td>patrol, walk, wander</td><td>Paces back and forth</td></tr>
+        </table>
+        <h3>Shape rules</h3>
+        <table>
+          <tr><td>Size</td><td>Bigger → more HP and damage, slightly slower.</td></tr>
+          <tr><td>Legs</td><td>Vertical lines reaching the bottom count as legs. 2 legs normal, 4 faster, 6+ very fast. No legs → wriggles at 65% speed.</td></tr>
+          <tr><td>Spikes</td><td>Sharp zig-zag corners add damage (+6% each, up to 10).</td></tr>
+          <tr><td>Closed loop</td><td>A closed body outline gives +25% HP (armour).</td></tr>
+          <tr><td>Detail</td><td>Masterpieces with many strokes get up to +50% HP. Designing pays off.</td></tr>
+          <tr><td>Colouring in</td><td>A bucket-filled body counts as a closed body (+25% HP armour).</td></tr>
+        </table>
+        <h3>Controls</h3>
+        <table>
+          <tr><td>Left drag</td><td>Draw · Right drag / wheel / ← → / minimap: pan the camera</td></tr>
+          <tr><td>Enter / Esc</td><td>Bring to life / erase sketch</td></tr>
+          <tr><td>S · P · H · 1 · 2</td><td>Studio · pause · spellbook · go home · go to the front</td></tr>
+          <tr><td>Studio keys</td><td>B pen · C crayon · G bucket · E eraser · M mirror · [ ] size · Ctrl+Z undo</td></tr>
+        </table>
+      </div>
+    </div>
+    <button id="btnBookClose">Close</button>
+  </div>
+</div>
+
+<script src="vocab.js"></script>
+<script src="paint.js"></script>
+<script src="world.js"></script>
+<script src="studio.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
